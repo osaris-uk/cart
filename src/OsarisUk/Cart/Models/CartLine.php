@@ -19,7 +19,13 @@ class CartLine extends Model
      *
      * @var array
      */
-    protected $fillable = ['cart_id', 'product_id', 'quantity', 'unit_price'];
+    protected $fillable = [
+        'cart_id',
+        'product_id',
+        'attributes',
+        'quantity',
+        'unit_price'
+    ];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -36,6 +42,7 @@ class CartLine extends Model
     protected $casts = [
         'cart_id' => 'int',
         'product_id' => 'int',
+        'attributes' => 'array',
         'quantity' => 'int',
         'unit_price' => 'float',
     ];
