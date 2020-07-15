@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/osaris-uk/cart.svg?branch=master)](https://travis-ci.com/osaris-uk/cart)
+
 # Cart
 
 Shopping Cart library for Laravel 6 that uses database instead of sessions to store carts.
