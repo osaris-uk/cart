@@ -3,6 +3,8 @@
 namespace OsarisUk\Cart;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use OsarisUk\Cart\Console\Commands\CartCleanup;
 
 class CartServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,12 @@ class CartServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/database/migrations/' => database_path('migrations')
         ], 'migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CartCleanup::class,
+            ]);
+        }
 
         $this->registerScheduler();
     }
@@ -55,13 +63,9 @@ class CartServiceProvider extends ServiceProvider
      * @codeCoverageIgnore
      */
     protected function registerScheduler(){
-        $schedule = $this->app['Illuminate\Console\Scheduling\Schedule'];
-        $events = $this->app['events'];
-        $schedule_frequency = config('cart.schedule_frequency', 'hourly');
-
-        $events->listen('artisan.start', function (\Illuminate\Console\Application $artisan) use($schedule, $schedule_frequency){
-            $artisan->resolveCommands(Console\Commands\CartCleanup::class);
-            $schedule->command('cart:cleanup')->$schedule_frequency();
+        $this->app->booted(function () {
+            $schedule = app(Schedule::class);
+            $schedule->command('cart:cleanup')->{config('cart.schedule_frequency', 'hourly')}();
         });
     }
 
