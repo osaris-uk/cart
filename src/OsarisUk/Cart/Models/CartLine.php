@@ -65,12 +65,13 @@ class CartLine extends Model
     }
 
     /*
-    * Get Item orginal quantity before update
+    * Get Item original quantity before update
     *
     * @return integer
     */
 
-    public function getOriginalQuantity(){
+    public function getOriginalQuantity()
+    {
         return $this->original['quantity'];
     }
 
@@ -79,7 +80,8 @@ class CartLine extends Model
     *
     * @return float
     */
-    public function getOriginalUnitPrice(){
+    public function getOriginalUnitPrice()
+    {
         return $this->original['unit_price'];
     }
 
@@ -88,7 +90,8 @@ class CartLine extends Model
     *
     * @return float
     */
-    public function getPrice(){
+    public function getPrice()
+    {
         return $this->quantity * $this->unit_price;
     }
 
@@ -97,7 +100,8 @@ class CartLine extends Model
     *
     * @return integer
     */
-    public function getOriginalPrice(){
+    public function getOriginalPrice()
+    {
         return $this->getOriginalQuantity() * $this->getOriginalUnitPrice();
     }
 
@@ -105,7 +109,8 @@ class CartLine extends Model
     * Get the singleton cart of this line item.
     *
     */
-    public function getCartInstance(){
+    public function getCartInstance()
+    {
         $carts = app('cart_instances');
         foreach ($carts as $name => $cart) {
             if($cart->id === $this->cart_id){
@@ -120,7 +125,8 @@ class CartLine extends Model
     *
     * @param Cart $cart
     */
-    public function moveTo(Cart $cart){
+    public function moveTo(Cart $cart)
+    {
         $model = null;
         \DB::transaction(function () use($cart, &$model) {
             $this->delete(); // delete from own cart
@@ -136,11 +142,12 @@ class CartLine extends Model
      *
      * @return void
      */
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
         //when an item is created
-        static::created(function(CartLine $line){
+        static::created(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price + $line->getPrice();
             $cart->item_count = $cart->item_count + $line->quantity;
@@ -149,7 +156,7 @@ class CartLine extends Model
         });
 
         //when an item is updated
-        static::updated(function(CartLine $line){
+        static::updated(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price - $line->getOriginalPrice() + $line->getPrice();
             $cart->item_count = $cart->item_count - $line->getOriginalQuantity() + $line->quantity;
@@ -157,7 +164,7 @@ class CartLine extends Model
             $cart->save();
         });
 
-        static::deleted(function(CartLine $line){
+        static::deleted(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price - $line->getPrice();
             $cart->item_count = $cart->item_count - $line->quantity;

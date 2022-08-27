@@ -26,14 +26,26 @@ class Cart extends Model
      *
      * @var array
      */
-    protected $fillable = ['user_id', 'session', 'name', 'status', 'total_price', 'item_count', 'placed_at', 'completed_at'];
+    protected $fillable = [
+        'user_id',
+        'session',
+        'name',
+        'status',
+        'total_price',
+        'item_count',
+        'placed_at',
+        'completed_at'
+    ];
 
     /**
      * The attributes that should be mutated to dates.
      *
      * @var array
      */
-    protected $dates = ['placed_at', 'completed_at'];
+    protected $dates = [
+        'placed_at',
+        'completed_at'
+    ];
 
     /**
      * The attributes that should be casted to native types.
@@ -57,43 +69,53 @@ class Cart extends Model
     /**
     * Get the items for the cart.
     */
-    public function items(){
+    public function items()
+    {
         return $this->hasMany(config('cart.cart_line_model'));
     }
 
-    public function scopePending($query){
+    public function scopePending($query)
+    {
         return $query->where('status', STATUS_PENDING );
     }
 
-    public function scopeCompleted($query){
+    public function scopeCompleted($query)
+    {
         return $query->where('status', STATUS_COMPLETE );
     }
 
-    public function scopeExpired($query){
+    public function scopeExpired($query)
+    {
         return $query->where('status', STATUS_EXPIRED );
     }
 
-    public function scopeActive($query){
+    public function scopeActive($query)
+    {
         return $query->where('status', STATUS_ACTIVE );
     }
 
-    public function scopeInstance($query, $instance_name = 'default'){
+    public function scopeInstance($query, $instance_name = 'default')
+    {
         return $query->where('name',  $instance_name);
     }
 
-    public function scopeUser($query, $user_id = null){
+    public function scopeUser($query, $user_id = null)
+    {
         $user_id = $user_id ?: config('cart.user_id');
-        if ($user_id instanceof \Closure)
+        if ($user_id instanceof \Closure) {
             $user_id = $user_id();
+        }
         return $query->where('user_id', $user_id);
     }
 
-    public function scopeSession($query, $session_id = null){
+    public function scopeSession($query, $session_id = null)
+    {
         $session_id = $session_id ?: app('request')->session()->getId();
         return $query->where('session', $session_id);
     }
 
-    public function setTotalPriceAttribute($value){
+    public function setTotalPriceAttribute($value)
+    {
         $this->attributes['total_price'] = $value;
     }
 
@@ -103,7 +125,8 @@ class Cart extends Model
      * @param  string  $instance_name
      * @return mixed
      */
-    public static function current($instance_name = 'default', $save_on_demand = null){
+    public static function current($instance_name = 'default', $save_on_demand = null)
+    {
         $save_on_demand = is_null($save_on_demand)? config('cart.save_on_demand', false): $save_on_demand;
         return static::init($instance_name, $save_on_demand);
     }
@@ -114,19 +137,20 @@ class Cart extends Model
      * @param  string  $instance_name
      * @return mixed
      */
-    public static function init($instance_name, $save_on_demand){
-
+    public static function init($instance_name, $save_on_demand)
+    {
         $request = app('request');
         $session_id = $request->session()->getId();
         $user_id = config('cart.user_id');
         $app = Application::getInstance();
         $carts = $app->offsetGet("cart_instances");
 
-        if ($user_id instanceof \Closure)
+        if ($user_id instanceof \Closure) {
             $user_id = $user_id();
+        }
 
         //if user logged in
-        if( $user_id ){
+        if ($user_id) {
             $user_cart = static::active()->user()->where('name', $instance_name)->first();
 
             $session_cart_id = $request->session()->get('cart_'.$instance_name);
@@ -167,9 +191,8 @@ class Cart extends Model
 
             $request->session()->forget('cart_'.$instance_name); //no longer need it.
             $carts[$instance_name] = $cart;
-        }
-        //guest user, create cart with session id
-        else{
+        } else {
+            //guest user, create cart with session id
             $attributes = array(
                 'session' => $session_id,
                 'name' => $instance_name,
@@ -194,11 +217,12 @@ class Cart extends Model
      *
      * @return void
      */
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
         //delete line items
-        static::deleting(function(Cart $cart) {
+        static::deleting(function (Cart $cart) {
             $cart->items()->delete();
         });
     }
@@ -208,8 +232,9 @@ class Cart extends Model
      *
      * @param  array $attributes
      */
-    public function addItem(array $attributes = []){
-        if($item = $this->getItem(collect($attributes)->except(['quantity']))){
+    public function addItem(array $attributes = [])
+    {
+        if ($item = $this->getItem(collect($attributes)->except(['quantity']))) {
             $item->quantity += $attributes['quantity'];
             $item->save();
             return $item;
@@ -222,7 +247,8 @@ class Cart extends Model
      *
      * @param  array $attributes
      */
-    public function removeItem(array $attributes = []){
+    public function removeItem(array $attributes = [])
+    {
         return $this->items()->where($attributes)->first()->delete();
     }
 
@@ -231,7 +257,8 @@ class Cart extends Model
      *
      * @param  array $attributes
      */
-    public function updateItem(array $where, array $values){
+    public function updateItem(array $where, array $values)
+    {
         return $this->items()->where($where)->first()->update($values);
     }
 
@@ -240,7 +267,8 @@ class Cart extends Model
      * Cart checkout.
      *
      */
-    public function checkout(){
+    public function checkout()
+    {
         return $this->update( ['status' => STATUS_PENDING, 'placed_at' => Carbon::now()]);
     }
 
@@ -248,7 +276,8 @@ class Cart extends Model
      * Expires a cart
      *
      */
-    public function expire(){
+    public function expire()
+    {
         return $this->update(['status' => STATUS_EXPIRED]);
     }
 
@@ -256,7 +285,8 @@ class Cart extends Model
      * Set a cart as complete
      *
      */
-    public function complete(){
+    public function complete()
+    {
         return $this->update(['status' => STATUS_COMPLETE, 'completed_at' => Carbon::now()]);
     }
 
@@ -264,18 +294,21 @@ class Cart extends Model
      * Check if cart is empty
      *
      */
-    public function isEmpty(){
+    public function isEmpty()
+    {
         return empty($this->item_count);
     }
 
-    public function getItem($where) {
-        if($where instanceof Collection) {
+    public function getItem($where)
+    {
+        if ($where instanceof Collection) {
             $where = $where->toArray();
         }
         return $this->items()->where($where)->first();
     }
 
-    public function hasItem($where){
+    public function hasItem($where)
+    {
         return !is_null($this->getItem($where));
     }
 
@@ -283,7 +316,8 @@ class Cart extends Model
      * Empties a cart
      *
      */
-    public function clear(){
+    public function clear()
+    {
         $this->items()->delete();
         $this->updateTimestamps();
         $this->total_price = 0;
@@ -297,18 +331,18 @@ class Cart extends Model
      *
      * @param Cart $cart
      */
-    public function moveItemsTo(Cart $cart){
-
+    public function moveItemsTo(Cart $cart)
+    {
         \DB::transaction(function () use(&$cart){
             $current_items = $cart->items()->pluck('product_id');
             $items_to_move = $this->items()->whereNotIn('product_id', $current_items->toArray())->get();
-            if($items_to_move->count() === 0){
+            if ($items_to_move->count() === 0) {
                 return;
             }
             $this->items()->whereNotIn('product_id', $current_items->toArray())->update([
                 'cart_id' => $cart->id
             ]);
-            foreach($items_to_move as $item) {
+            foreach ($items_to_move as $item) {
                 $this->item_count -= $item->quantity;
                 $this->total_price -= $item->getPrice();
                 $cart->item_count += $item->quantity;
