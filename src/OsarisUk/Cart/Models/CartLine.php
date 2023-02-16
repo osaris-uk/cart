@@ -4,6 +4,10 @@ namespace OsarisUk\Cart\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class CartLine
+ * @package OsarisUk\Cart\Models
+ */
 class CartLine extends Model
 {
 
@@ -64,51 +68,51 @@ class CartLine extends Model
         return $this->belongsTo(config('cart.cart_model'), 'cart_id');
     }
 
-    /*
-    * Get Item original quantity before update
-    *
-    * @return integer
-    */
-
+    /**
+     * Get Item original quantity before update
+     *
+     * @return mixed
+     */
     public function getOriginalQuantity()
     {
         return $this->original['quantity'];
     }
 
-    /*
-    * Get Item original price before update
-    *
-    * @return float
-    */
+    /**
+     * Get Item original price before update
+     *
+     * @return mixed
+     */
     public function getOriginalUnitPrice()
     {
         return $this->original['unit_price'];
     }
 
-    /*
-    * Get Item price
-    *
-    * @return float
-    */
+    /**
+     * Get Item price
+     *
+     * @return float|int
+     */
     public function getPrice()
     {
         return $this->quantity * $this->unit_price;
     }
 
-    /*
-    * Get Item original price before update
-    *
-    * @return integer
-    */
+    /**
+     * Get Item original price before update
+     *
+     * @return float|int
+     */
     public function getOriginalPrice()
     {
         return $this->getOriginalQuantity() * $this->getOriginalUnitPrice();
     }
 
-    /*
-    * Get the singleton cart of this line item.
-    *
-    */
+    /**
+     * Get the singleton cart of this line item.
+     *
+     * @return |null
+     */
     public function getCartInstance()
     {
         $carts = app('cart_instances');
@@ -120,11 +124,12 @@ class CartLine extends Model
         return null;
     }
 
-    /*
-    * Move this item to another cart
-    *
-    * @param Cart $cart
-    */
+    /**
+     * Move this item to another cart
+     *
+     * @param Cart $cart
+     * @return |null
+     */
     public function moveTo(Cart $cart)
     {
         $model = null;

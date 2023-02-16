@@ -12,6 +12,10 @@ const STATUS_PENDING = 'pending';
 const STATUS_EXPIRED = 'expired';
 const STATUS_COMPLETE = 'complete';
 
+/**
+ * Class Cart
+ * @package OsarisUk\Cart\Models
+ */
 class Cart extends Model
 {
     /**
@@ -74,31 +78,57 @@ class Cart extends Model
         return $this->hasMany(config('cart.cart_line_model'));
     }
 
+    /**
+     * @param $query
+     * @return mixed
+     */
     public function scopePending($query)
     {
         return $query->where('status', STATUS_PENDING );
     }
 
+    /**
+     * @param $query
+     * @return mixed
+     */
     public function scopeCompleted($query)
     {
         return $query->where('status', STATUS_COMPLETE );
     }
 
+    /**
+     * @param $query
+     * @return mixed
+     */
     public function scopeExpired($query)
     {
         return $query->where('status', STATUS_EXPIRED );
     }
 
+    /**
+     * @param $query
+     * @return mixed
+     */
     public function scopeActive($query)
     {
         return $query->where('status', STATUS_ACTIVE );
     }
 
+    /**
+     * @param $query
+     * @param string $instance_name
+     * @return mixed
+     */
     public function scopeInstance($query, $instance_name = 'default')
     {
         return $query->where('name',  $instance_name);
     }
 
+    /**
+     * @param $query
+     * @param null $user_id
+     * @return mixed
+     */
     public function scopeUser($query, $user_id = null)
     {
         $user_id = $user_id ?: config('cart.user_id');
@@ -108,12 +138,20 @@ class Cart extends Model
         return $query->where('user_id', $user_id);
     }
 
+    /**
+     * @param $query
+     * @param null $session_id
+     * @return mixed
+     */
     public function scopeSession($query, $session_id = null)
     {
         $session_id = $session_id ?: app('request')->session()->getId();
         return $query->where('session', $session_id);
     }
 
+    /**
+     * @param $value
+     */
     public function setTotalPriceAttribute($value)
     {
         $this->attributes['total_price'] = $value;
@@ -230,7 +268,8 @@ class Cart extends Model
     /**
      * Add item to a cart. Increases quantity if the item already exists.
      *
-     * @param  array $attributes
+     * @param array $attributes
+     * @return mixed
      */
     public function addItem(array $attributes = [])
     {
@@ -245,7 +284,8 @@ class Cart extends Model
     /**
      * remove item from a cart
      *
-     * @param  array $attributes
+     * @param array $attributes
+     * @return
      */
     public function removeItem(array $attributes = [])
     {
@@ -255,7 +295,9 @@ class Cart extends Model
     /**
      * update item in a cart
      *
-     * @param  array $attributes
+     * @param array $where
+     * @param array $values
+     * @return
      */
     public function updateItem(array $where, array $values)
     {
@@ -299,6 +341,10 @@ class Cart extends Model
         return empty($this->item_count);
     }
 
+    /**
+     * @param $where
+     * @return mixed
+     */
     public function getItem($where)
     {
         if ($where instanceof Collection) {
@@ -307,6 +353,10 @@ class Cart extends Model
         return $this->items()->where($where)->first();
     }
 
+    /**
+     * @param $where
+     * @return bool
+     */
     public function hasItem($where)
     {
         return !is_null($this->getItem($where));
@@ -330,30 +380,50 @@ class Cart extends Model
      * Move Items to another cart instance
      *
      * @param Cart $cart
+     * @return Cart
      */
     public function moveItemsTo(Cart $cart)
     {
         \DB::transaction(function () use(&$cart){
             $current_items = $cart->items()->pluck('product_id');
             $items_to_move = $this->items()->whereNotIn('product_id', $current_items->toArray())->get();
+
             if ($items_to_move->count() === 0) {
                 return;
             }
+
             $this->items()->whereNotIn('product_id', $current_items->toArray())->update([
                 'cart_id' => $cart->id
             ]);
+
             foreach ($items_to_move as $item) {
                 $this->item_count -= $item->quantity;
                 $this->total_price -= $item->getPrice();
                 $cart->item_count += $item->quantity;
                 $cart->total_price += $item->getPrice();
             }
+
             $this->relations = [];
             $cart->relations = [];
             $this->save();
             $cart->save();
         });
+
         return $cart;
+    }
+
+    /**
+     * Refresh cart based on cart line items.
+     *
+     * @return mixed
+     */
+    public function refresh()
+    {
+        $this->updateTimestamps();
+        $this->total_price = $this->items()->sum('unit_price');
+        $this->item_count = $this->items()->sum('quantity');
+        $this->relations = [];
+        return $this->save();
     }
 }
 
