@@ -4,6 +4,10 @@ namespace OsarisUk\Cart\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class CartLine
+ * @package OsarisUk\Cart\Models
+ */
 class CartLine extends Model
 {
 
@@ -64,48 +68,53 @@ class CartLine extends Model
         return $this->belongsTo(config('cart.cart_model'), 'cart_id');
     }
 
-    /*
-    * Get Item orginal quantity before update
-    *
-    * @return integer
-    */
-
-    public function getOriginalQuantity(){
+    /**
+     * Get Item original quantity before update
+     *
+     * @return mixed
+     */
+    public function getOriginalQuantity()
+    {
         return $this->original['quantity'];
     }
 
-    /*
-    * Get Item original price before update
-    *
-    * @return float
-    */
-    public function getOriginalUnitPrice(){
+    /**
+     * Get Item original price before update
+     *
+     * @return mixed
+     */
+    public function getOriginalUnitPrice()
+    {
         return $this->original['unit_price'];
     }
 
-    /*
-    * Get Item price
-    *
-    * @return float
-    */
-    public function getPrice(){
+    /**
+     * Get Item price
+     *
+     * @return float|int
+     */
+    public function getPrice()
+    {
         return $this->quantity * $this->unit_price;
     }
 
-    /*
-    * Get Item original price before update
-    *
-    * @return integer
-    */
-    public function getOriginalPrice(){
+    /**
+     * Get Item original price before update
+     *
+     * @return float|int
+     */
+    public function getOriginalPrice()
+    {
         return $this->getOriginalQuantity() * $this->getOriginalUnitPrice();
     }
 
-    /*
-    * Get the singleton cart of this line item.
-    *
-    */
-    public function getCartInstance(){
+    /**
+     * Get the singleton cart of this line item.
+     *
+     * @return |null
+     */
+    public function getCartInstance()
+    {
         $carts = app('cart_instances');
         foreach ($carts as $name => $cart) {
             if($cart->id === $this->cart_id){
@@ -115,12 +124,14 @@ class CartLine extends Model
         return null;
     }
 
-    /*
-    * Move this item to another cart
-    *
-    * @param Cart $cart
-    */
-    public function moveTo(Cart $cart){
+    /**
+     * Move this item to another cart
+     *
+     * @param Cart $cart
+     * @return |null
+     */
+    public function moveTo(Cart $cart)
+    {
         $model = null;
         \DB::transaction(function () use($cart, &$model) {
             $this->delete(); // delete from own cart
@@ -136,11 +147,12 @@ class CartLine extends Model
      *
      * @return void
      */
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
         //when an item is created
-        static::created(function(CartLine $line){
+        static::created(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price + $line->getPrice();
             $cart->item_count = $cart->item_count + $line->quantity;
@@ -149,7 +161,7 @@ class CartLine extends Model
         });
 
         //when an item is updated
-        static::updated(function(CartLine $line){
+        static::updated(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price - $line->getOriginalPrice() + $line->getPrice();
             $cart->item_count = $cart->item_count - $line->getOriginalQuantity() + $line->quantity;
@@ -157,7 +169,7 @@ class CartLine extends Model
             $cart->save();
         });
 
-        static::deleted(function(CartLine $line){
+        static::deleted(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price - $line->getPrice();
             $cart->item_count = $cart->item_count - $line->quantity;
