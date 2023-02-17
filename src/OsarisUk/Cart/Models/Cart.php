@@ -260,7 +260,7 @@ class Cart extends Model
         parent::boot();
 
         static::deleting(function (Cart $cart) {
-            $cart->items->delete();
+            $cart->items()->delete();
         });
     }
 
@@ -277,7 +277,7 @@ class Cart extends Model
             $item->save();
             return $item;
         }
-        return $this->items->create($attributes);
+        return $this->items()->create($attributes);
     }
 
     /**
@@ -288,7 +288,7 @@ class Cart extends Model
      */
     public function removeItem(array $attributes = [])
     {
-        $item =  $this->items->where($attributes)->first();
+        $item =  $this->items()->where($attributes)->first();
 
         if ($item) {
             return $item->delete();
@@ -306,7 +306,7 @@ class Cart extends Model
      */
     public function updateItem(array $where, array $values)
     {
-        $item =  $this->items->where($where)->first();
+        $item =  $this->items()->where($where)->first();
 
         if ($item) {
             return $item->update($values);
@@ -376,7 +376,7 @@ class Cart extends Model
             $where = $where->toArray();
         }
 
-        return $this->items->where($where)->first();
+        return $this->items()->where($where)->first();
     }
 
     /**
@@ -394,7 +394,7 @@ class Cart extends Model
      */
     public function clear()
     {
-        $this->items->delete();
+        $this->items()->delete();
         $this->updateTimestamps();
         $this->total_price = 0;
         $this->item_count = 0;
@@ -411,14 +411,14 @@ class Cart extends Model
     public function moveItemsTo(Cart $cart)
     {
         \DB::transaction(function () use(&$cart){
-            $current_items = $cart->items->pluck('product_id');
-            $items_to_move = $this->items->whereNotIn('product_id', $current_items->toArray())->get();
+            $current_items = $cart->items()->pluck('product_id');
+            $items_to_move = $this->items()->whereNotIn('product_id', $current_items->toArray())->get();
 
             if ($items_to_move->count() === 0) {
                 return;
             }
 
-            $this->items->whereNotIn('product_id', $current_items->toArray())->update([
+            $this->items()->whereNotIn('product_id', $current_items->toArray())->update([
                 'cart_id' => $cart->id
             ]);
 
@@ -446,8 +446,8 @@ class Cart extends Model
     public function refresh()
     {
         $this->updateTimestamps();
-        $this->total_price = $this->items->sum('unit_price');
-        $this->item_count = $this->items->sum('quantity');
+        $this->total_price = $this->items()->sum('unit_price');
+        $this->item_count = $this->items()->sum('quantity');
         $this->relations = [];
         return $this->save();
     }
