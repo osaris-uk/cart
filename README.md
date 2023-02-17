@@ -89,8 +89,8 @@ Since `$cart` is eloquent model instance, you can use any of the eloquent method
 
 ```php
 $items = $cart->items // by dynamic property access
-$items = $cart->items()->get()  
-$items = $cart->items()->where('quantity', '>=', 2)->get()
+$items = $cart->items->get()  
+$items = $cart->items->where('quantity', '>=', 2)->get()
 ```
 
 #### Update an Item: `$cart->updateItem($where, $attributes)`
@@ -124,13 +124,19 @@ Remove all items from the cart
 ```php
 $cart->clear(); 
 ```    
+#### Refresh Cart Items: `$cart->refresh()`
+
+Refresh the cart based on all items in the cart
+
+```php
+$cart->refresh(); 
+```    
 #### Checkout cart: `$cart->checkout()`
 
 This method only updates `status` and `placed_at` column values. `status` is set to `pending`
 
 ```php    
 $cart->checkout();
-
 ```
 
 
@@ -155,7 +161,6 @@ $wishlist = app('cart', ['name' => 'wishlist']);
 //move an wishlist item to cart
 $item = $wishlist->items()->where(['product_id' => 1])->first();
 $item->moveTo($cart);
-
 ```
 
 
@@ -173,7 +178,6 @@ Supports several cart statuses:
 * `expired`: cart is expired, meaningful for session carts
 * `pending`: checked out carts 
 * `completed`: completed carts 
-
 ```php
 use OsarisUk\Cart\Models\Cart;
 

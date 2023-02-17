@@ -116,11 +116,13 @@ class CartLine extends Model
     public function getCartInstance()
     {
         $carts = app('cart_instances');
+
         foreach ($carts as $name => $cart) {
             if($cart->id === $this->cart_id){
                 return $cart;
             }
         }
+
         return null;
     }
 
@@ -133,12 +135,14 @@ class CartLine extends Model
     public function moveTo(Cart $cart)
     {
         $model = null;
+
         \DB::transaction(function () use($cart, &$model) {
-            $this->delete(); // delete from own cart
+            $this->delete();
             $attr = $this->attributes;
             unset($attr['cart_id']);
             $model = $cart->items()->create($attr);
         });
+
         return $model;
     }
 
@@ -151,7 +155,6 @@ class CartLine extends Model
     {
         parent::boot();
 
-        //when an item is created
         static::created(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price + $line->getPrice();
@@ -160,7 +163,6 @@ class CartLine extends Model
             $cart->save();
         });
 
-        //when an item is updated
         static::updated(function (CartLine $line) {
             $cart = $line->getCartInstance() ?: $line->cart;
             $cart->total_price = $cart->total_price - $line->getOriginalPrice() + $line->getPrice();
