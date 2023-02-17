@@ -1,5 +1,5 @@
 /vendor
 error_log
 coverage
-/.idea
+/.idea/*
 .phpunit.result.cache
