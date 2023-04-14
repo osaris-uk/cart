@@ -443,10 +443,16 @@ class Cart extends Model
      *
      * @return mixed
      */
-    public function refresh()
+    public function refreshCartTotals()
     {
+        $total_price = 0;
+
+        $this->items()->each(function ($item) use (&$total_price) {
+            $total_price += $item->unit_price * $item->quantity;
+        });
+
         $this->updateTimestamps();
-        $this->total_price = $this->items()->sum('unit_price');
+        $this->total_price = $total_price;
         $this->item_count = $this->items()->sum('quantity');
         $this->relations = [];
         return $this->save();

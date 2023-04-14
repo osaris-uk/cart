@@ -124,12 +124,12 @@ Remove all items from the cart
 ```php
 $cart->clear(); 
 ```    
-#### Refresh Cart Items: `$cart->refresh()`
+#### Refresh Cart Totals: `$cart->refreshCartTotals()`
 
 Refresh the cart based on all items in the cart
 
 ```php
-$cart->refresh(); 
+$cart->refreshCartTotals(); 
 ```    
 #### Checkout cart: `$cart->checkout()`
 
