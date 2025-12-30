@@ -126,14 +126,13 @@ class Cart extends Model
 
     /**
      * @param $query
-     * @param null $user_id
+     * @param mixed $user_id
      * @return mixed
      */
     public function scopeUser($query, $user_id = null)
     {
-        $user_id = $user_id ?: config('cart.user_id');
-        if ($user_id instanceof \Closure) {
-            $user_id = $user_id();
+        if (! $user_id) {
+            $user_id = (new (config('cart.user_id')))();
         }
         return $query->where('user_id', $user_id);
     }
@@ -179,13 +178,9 @@ class Cart extends Model
     {
         $request = app('request');
         $session_id = $request->session()->getId();
-        $user_id = config('cart.user_id');
+        $user_id = (new (config('cart.user_id')))();
         $app = Application::getInstance();
         $carts = $app->offsetGet("cart_instances");
-
-        if ($user_id instanceof \Closure) {
-            $user_id = $user_id();
-        }
 
         //if user logged in
         if ($user_id) {

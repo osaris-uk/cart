@@ -8,7 +8,7 @@ return [
     | Cart Model
     |--------------------------------------------------------------------------
     |
-    | If you extend the  OsarisUk\Cart\Models\Cart class then specify child
+    | If you extend the OsarisUk\Cart\Models\Cart class, then specify child
     | class namespace here
     |
     */
@@ -51,16 +51,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | User Id Closure
+    | User Id invokable class
     |--------------------------------------------------------------------------
     |
-    | Closure to find logged in user id; Return null/false if not logged in
+    | Invokable class to find logged-in user id; Return null/false if not
+    | logged in.
     |
     */
 
-    'user_id' => function(){
-        return Auth::id();
-    },
+    'user_id' => \OsarisUk\Cart\Helpers\GetUserId::class,
 
     /*
     |--------------------------------------------------------------------------
